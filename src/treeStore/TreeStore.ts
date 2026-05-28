@@ -12,9 +12,7 @@ export class TreeStore {
   private childrenMap: Map<string | number | typeof ROOT, Array<string | number>> = new Map()
 
   constructor(items: TreeItem[]) {
-    for (const item of items) {
-      this._register(item)
-    }
+    for (const item of items) { this._register(item) }
   }
 
   private _register(item: TreeItem): void {
@@ -32,18 +30,11 @@ export class TreeStore {
     else this.childrenMap.delete(pk)
   }
 
-  getAll(): TreeItem[] {
-    return Array.from(this.itemMap.values())
-  }
-
-  getItem(id: string | number): TreeItem | undefined {
-    return this.itemMap.get(id)
-  }
+  getAll(): TreeItem[] { return Array.from(this.itemMap.values()) }
+  getItem(id: string | number): TreeItem | undefined { return this.itemMap.get(id) }
 
   getChildren(id: string | number): TreeItem[] {
-    return (this.childrenMap.get(id) ?? [])
-      .map((cid) => this.itemMap.get(cid)!)
-      .filter(Boolean)
+    return (this.childrenMap.get(id) ?? []).map((cid) => this.itemMap.get(cid)!).filter(Boolean)
   }
 
   getAllChildren(id: string | number): TreeItem[] {
@@ -76,23 +67,18 @@ export class TreeStore {
   }
 
   getRoots(): TreeItem[] {
-    return (this.childrenMap.get(ROOT) ?? [])
-      .map((id) => this.itemMap.get(id)!)
-      .filter(Boolean)
+    return (this.childrenMap.get(ROOT) ?? []).map((id) => this.itemMap.get(id)!).filter(Boolean)
   }
 
   addItem(item: TreeItem): void {
-    if (this.itemMap.has(item.id)) {
-      throw new Error(`TreeStore: item with id "${item.id}" already exists`)
-    }
+    if (this.itemMap.has(item.id)) throw new Error(`TreeStore: item with id "${item.id}" already exists`)
     this._register(item)
   }
 
   removeItem(id: string | number): Array<string | number> {
     const item = this.itemMap.get(id)
     if (!item) return []
-    const descendants = this.getAllChildren(id)
-    const toRemove: TreeItem[] = [item, ...descendants]
+    const toRemove: TreeItem[] = [item, ...this.getAllChildren(id)]
     for (const r of toRemove) {
       this._unlink(r.id, r.parent)
       this.childrenMap.delete(r.id)
@@ -103,9 +89,7 @@ export class TreeStore {
 
   updateItem(item: TreeItem): void {
     const existing = this.itemMap.get(item.id)
-    if (!existing) {
-      throw new Error(`TreeStore: item with id "${item.id}" not found`)
-    }
+    if (!existing) throw new Error(`TreeStore: item with id "${item.id}" not found`)
     if (existing.parent !== item.parent) {
       this._unlink(item.id, existing.parent)
       const newPk = item.parent ?? ROOT
@@ -119,5 +103,23 @@ export class TreeStore {
     let id = this.itemMap.size + 1
     while (this.itemMap.has(id)) id++
     return id
+  }
+
+  getVisibleRows(
+    expanded: Set<string | number>,
+  ): Array<TreeItem & { _depth: number; _hasChildren: boolean; _expanded: boolean }> {
+    const result: Array<TreeItem & { _depth: number; _hasChildren: boolean; _expanded: boolean }> = []
+    const traverse = (parentKey: string | number | typeof ROOT, depth: number) => {
+      for (const id of this.childrenMap.get(parentKey) ?? []) {
+        const item = this.itemMap.get(id)
+        if (!item) continue
+        const hasChildren = this.hasChildren(id)
+        const isExpanded = expanded.has(id)
+        result.push({ ...item, _depth: depth, _hasChildren: hasChildren, _expanded: isExpanded })
+        if (hasChildren && isExpanded) traverse(id, depth + 1)
+      }
+    }
+    traverse(ROOT, 0)
+    return result
   }
 }
