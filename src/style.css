@@ -1,0 +1,46 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── AG Grid theme ──────────────────────────────────────────────── */
+.ag-theme-alpine {
+  --ag-font-family: inherit;
+  --ag-font-size: 13px;
+  --ag-row-border-color: #f3f4f6;
+  --ag-header-background-color: #f9fafb;
+  --ag-header-foreground-color: #374151;
+  --ag-border-color: #e5e8ed;
+  --ag-cell-horizontal-padding: 16px;
+  --ag-row-hover-color: #f8faff;
+}
+.ag-theme-alpine .ag-header-cell-label {
+  font-weight: 600;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* ── Chevron svg rotation (child selector — не работает в Tailwind) */
+.tree-chevron svg {
+  transition: transform 0.2s;
+  transform: rotate(-90deg);
+}
+.tree-chevron--open svg {
+  transform: rotate(0deg);
+}
+
+/* ── Action button visible on row hover (AG Grid row selector) ──── */
+.ag-row:hover .tree-action-btn,
+.tree-action-btn:focus {
+  opacity: 1;
+}
+
+/* ── Dialog transition ──────────────────────────────────────────── */
+.dialog-fade-enter-active,
+.dialog-fade-leave-active { transition: opacity 0.2s; }
+.dialog-fade-enter-from,
+.dialog-fade-leave-to { opacity: 0; }
+.dialog-fade-enter-active .dialog-inner,
+.dialog-fade-leave-active .dialog-inner { transition: transform 0.2s; }
+.dialog-fade-enter-from .dialog-inner,
+.dialog-fade-leave-to .dialog-inner { transform: scale(0.95) translateY(8px); }

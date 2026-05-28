@@ -13,50 +13,51 @@ const emit = defineEmits<{
 }>()
 
 const classes = {
-  root: 'tree-table',
-  toolbar: 'tree-table__toolbar',
-  modeLabel: 'tree-table__mode-label',
+  root: 'flex flex-col h-full',
+  toolbar: 'flex items-center gap-3 px-5 py-3 bg-white border-b border-gray-200 flex-wrap',
+  modeLabel: 'text-[13px] text-gray-500 font-medium',
   modeName: {
-    base: 'tree-table__mode-name',
-    view: 'tree-table__mode-name--view',
-    edit: 'tree-table__mode-name--edit',
+    base: 'font-semibold transition-colors duration-200',
+    view: 'text-blue-600',
+    edit: 'text-amber-600',
   },
-  toolbarActions: 'tree-table__toolbar-actions',
-  modeToggle: 'tree-table__mode-toggle',
+  toolbarActions: 'flex gap-2 flex-1',
+  modeToggle: 'flex border border-gray-300 rounded-lg overflow-hidden ml-auto',
   toggleBtn: {
-    base: 'tree-table__toggle-btn',
-    active: 'tree-table__toggle-btn--active',
+    base: 'px-4 py-1.5 text-[13px] font-medium bg-transparent border-0 cursor-pointer text-gray-500 transition-all duration-200 whitespace-nowrap hover:bg-gray-100',
+    active: 'bg-blue-600 text-white hover:bg-blue-600',
   },
   btn: {
-    base: 'tree-table__btn',
-    primary: 'tree-table__btn--primary',
-    secondary: 'tree-table__btn--secondary',
+    base: 'px-3.5 py-1.5 text-[13px] font-medium rounded-md border border-transparent cursor-pointer transition-all duration-150',
+    primary: 'bg-blue-600 text-white border-blue-600 hover:bg-blue-700',
+    secondary: 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50',
   },
-  grid: 'tree-table__grid ag-theme-alpine',
-  dialogOverlay: 'tree-table__dialog-overlay',
-  dialog: 'tree-table__dialog',
-  dialogParent: 'tree-table__dialog-parent',
-  dialogInput: 'tree-table__dialog-input',
-  dialogActions: 'tree-table__dialog-actions',
-  // cell renderer classes (used both in template and DOM API)
+  grid: 'flex-1 min-h-0 overflow-hidden ag-theme-alpine',
+  dialogOverlay: 'fixed inset-0 bg-black/35 flex items-center justify-center z-[1000]',
+  dialogInner: 'dialog-inner bg-white rounded-xl p-7 w-96 max-w-[90vw] shadow-[0_20px_40px_rgba(0,0,0,0.15)]',
+  dialogTitle: 'mt-0 mb-2 text-base font-bold text-gray-900',
+  dialogParent: 'mb-4 text-[13px] text-gray-500',
+  dialogInput: 'w-full box-border h-10 px-3 border-[1.5px] border-gray-300 rounded-lg text-sm font-[inherit] text-gray-900 outline-none mb-4 transition-colors duration-150 focus:border-blue-600',
+  dialogActions: 'flex gap-2.5 justify-end',
+  // cell renderer classes — used both in template and DOM API
   cell: {
-    category: 'tree-table__cell-category',
-    name: 'tree-table__cell-name',
-    num: 'tree-table__cell-num',
-    input: 'tree-table__cell-input',
+    category: 'flex items-center gap-1.5 h-full',
+    name: 'flex items-center gap-2 h-full w-full',
+    numCol: '!text-gray-400 !text-xs !font-medium',
+    input: 'flex-1 min-w-0 h-8 px-2.5 border-[1.5px] border-gray-300 rounded-md text-[13px] font-[inherit] text-gray-900 bg-white outline-none transition-colors duration-150 focus:border-blue-600',
   },
   chevron: {
-    base: 'tree-table__chevron',
-    open: 'tree-table__chevron--open',
+    base: 'tree-chevron inline-flex items-center justify-center w-6 h-6 border-0 bg-transparent cursor-pointer rounded text-gray-500 p-0 flex-shrink-0 transition-colors duration-150 hover:bg-gray-100',
+    open: 'tree-chevron--open',
   },
   typeLabel: {
-    base: 'tree-table__type-label',
-    group: 'tree-table__type-label--group',
-    item: 'tree-table__type-label--item',
+    base: 'text-[13px]',
+    group: 'font-bold text-gray-900',
+    item: 'font-normal text-gray-700',
   },
   actionBtn: {
-    base: 'tree-table__action-btn',
-    delete: 'tree-table__action-btn--delete',
+    base: 'tree-action-btn inline-flex items-center justify-center w-6 h-6 border-0 bg-transparent cursor-pointer rounded text-gray-500 p-0 flex-shrink-0 opacity-0 transition-all duration-150 hover:bg-gray-100',
+    delete: 'hover:!bg-red-100 hover:!text-red-600',
   },
 }
 
@@ -217,6 +218,7 @@ function buildNameRenderer(params: ICellRendererParams) {
     wrapper.appendChild(del)
   } else {
     const span = document.createElement('span')
+    span.className = 'text-[13px] text-gray-700'
     span.textContent = row.label
     wrapper.appendChild(span)
   }
@@ -229,7 +231,7 @@ const columnDefs = computed<ColDef[]>(() => [
     headerName: '№ п/п',
     width: 80,
     valueGetter: (p) => (p.node?.rowIndex ?? 0) + 1,
-    cellClass: classes.cell.num,
+    cellClass: classes.cell.numCol,
     sortable: false,
     resizable: false,
   },
@@ -293,10 +295,10 @@ const gridOptions: GridOptions = {
       />
     </div>
 
-    <Transition name="tree-table__dialog-fade">
+    <Transition name="dialog-fade">
       <div v-if="addingChildFor !== null" :class="classes.dialogOverlay" @click.self="cancelAdd">
-        <div :class="classes.dialog">
-          <h3>Добавить дочерний элемент</h3>
+        <div :class="classes.dialogInner">
+          <h3 :class="classes.dialogTitle">Добавить дочерний элемент</h3>
           <p :class="classes.dialogParent">
             Родитель: <strong>{{ store.getItem(addingChildFor)?.label }}</strong>
           </p>
@@ -317,226 +319,3 @@ const gridOptions: GridOptions = {
     </Transition>
   </div>
 </template>
-
-<style scoped>
-.tree-table {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-}
-
-.tree-table__toolbar {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 20px;
-  background: #fff;
-  border-bottom: 1px solid #e5e8ed;
-  flex-wrap: wrap;
-}
-
-.tree-table__mode-label {
-  font-size: 13px;
-  color: #6b7280;
-  font-weight: 500;
-}
-
-.tree-table__mode-name {
-  font-weight: 600;
-  transition: color 0.25s;
-}
-.tree-table__mode-name--view { color: #2563eb; }
-.tree-table__mode-name--edit { color: #d97706; }
-
-.tree-table__toolbar-actions {
-  display: flex;
-  gap: 8px;
-  flex: 1;
-}
-
-.tree-table__mode-toggle {
-  display: flex;
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-  overflow: hidden;
-  margin-left: auto;
-}
-
-.tree-table__toggle-btn {
-  padding: 6px 16px;
-  font-size: 13px;
-  font-weight: 500;
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  color: #6b7280;
-  transition: background 0.2s, color 0.2s;
-  white-space: nowrap;
-}
-.tree-table__toggle-btn--active { background: #2563eb; color: #fff; }
-.tree-table__toggle-btn:hover:not(.tree-table__toggle-btn--active) { background: #f3f4f6; }
-
-.tree-table__btn {
-  padding: 6px 14px;
-  font-size: 13px;
-  font-weight: 500;
-  border-radius: 6px;
-  border: 1px solid transparent;
-  cursor: pointer;
-  transition: all 0.15s;
-}
-.tree-table__btn--primary { background: #2563eb; color: #fff; border-color: #2563eb; }
-.tree-table__btn--primary:hover { background: #1d4ed8; }
-.tree-table__btn--secondary { background: #fff; color: #374151; border-color: #d1d5db; }
-.tree-table__btn--secondary:hover { background: #f9fafb; }
-
-.tree-table__grid {
-  flex: 1;
-  min-height: 0;
-  overflow: hidden;
-}
-
-.tree-table__dialog-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.35);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
-
-.tree-table__dialog {
-  background: #fff;
-  border-radius: 12px;
-  padding: 28px;
-  width: 380px;
-  max-width: 90vw;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
-}
-
-.tree-table__dialog h3 {
-  margin: 0 0 8px;
-  font-size: 16px;
-  font-weight: 700;
-  color: #111827;
-}
-
-.tree-table__dialog-parent {
-  margin: 0 0 16px;
-  font-size: 13px;
-  color: #6b7280;
-}
-
-.tree-table__dialog-input {
-  width: 100%;
-  box-sizing: border-box;
-  height: 40px;
-  padding: 0 12px;
-  border: 1.5px solid #d1d5db;
-  border-radius: 8px;
-  font-size: 14px;
-  font-family: inherit;
-  color: #111827;
-  outline: none;
-  margin-bottom: 16px;
-  transition: border-color 0.15s;
-}
-.tree-table__dialog-input:focus { border-color: #2563eb; }
-
-.tree-table__dialog-actions { display: flex; gap: 10px; justify-content: flex-end; }
-
-.tree-table__dialog-fade-enter-active,
-.tree-table__dialog-fade-leave-active { transition: opacity 0.2s; }
-.tree-table__dialog-fade-enter-from,
-.tree-table__dialog-fade-leave-to { opacity: 0; }
-.tree-table__dialog-fade-enter-active .tree-table__dialog,
-.tree-table__dialog-fade-leave-active .tree-table__dialog { transition: transform 0.2s; }
-.tree-table__dialog-fade-enter-from .tree-table__dialog,
-.tree-table__dialog-fade-leave-to .tree-table__dialog { transform: scale(0.95) translateY(8px); }
-</style>
-
-<style>
-.tree-table__cell-category { display: flex; align-items: center; gap: 6px; height: 100%; }
-.tree-table__cell-name { display: flex; align-items: center; gap: 8px; height: 100%; width: 100%; }
-.tree-table__cell-name span { font-size: 13px; color: #374151; }
-
-.tree-table__chevron {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 24px;
-  border: none;
-  background: transparent;
-  cursor: pointer;
-  border-radius: 4px;
-  color: #6b7280;
-  padding: 0;
-  flex-shrink: 0;
-  transition: background 0.15s;
-}
-.tree-table__chevron:hover { background: #f3f4f6; }
-.tree-table__chevron svg { transition: transform 0.2s; transform: rotate(-90deg); }
-.tree-table__chevron--open svg { transform: rotate(0deg); }
-
-.tree-table__type-label { font-size: 13px; }
-.tree-table__type-label--group { font-weight: 700; color: #111827; }
-.tree-table__type-label--item { font-weight: 400; color: #374151; }
-
-.tree-table__cell-num { color: #9ca3af !important; font-size: 12px !important; font-weight: 500 !important; }
-
-.tree-table__cell-input {
-  flex: 1;
-  min-width: 0;
-  height: 32px;
-  padding: 0 10px;
-  border: 1.5px solid #d1d5db;
-  border-radius: 6px;
-  font-size: 13px;
-  font-family: inherit;
-  color: #111827;
-  background: #fff;
-  outline: none;
-  transition: border-color 0.15s;
-}
-.tree-table__cell-input:focus { border-color: #2563eb; }
-
-.tree-table__action-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 24px;
-  border: none;
-  background: transparent;
-  cursor: pointer;
-  border-radius: 4px;
-  color: #6b7280;
-  padding: 0;
-  flex-shrink: 0;
-  opacity: 0;
-  transition: background 0.15s, opacity 0.15s;
-}
-.ag-row:hover .tree-table__action-btn,
-.tree-table__action-btn:focus { opacity: 1; }
-.tree-table__action-btn:hover { background: #f3f4f6; }
-.tree-table__action-btn--delete:hover { background: #fee2e2; color: #dc2626; }
-
-.ag-theme-alpine {
-  --ag-font-family: inherit;
-  --ag-font-size: 13px;
-  --ag-row-border-color: #f3f4f6;
-  --ag-header-background-color: #f9fafb;
-  --ag-header-foreground-color: #374151;
-  --ag-border-color: #e5e8ed;
-  --ag-cell-horizontal-padding: 16px;
-  --ag-row-hover-color: #f8faff;
-}
-.ag-theme-alpine .ag-header-cell-label {
-  font-weight: 600;
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-</style>
