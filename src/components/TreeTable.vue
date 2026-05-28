@@ -150,7 +150,7 @@ const columnDefs = computed<ColDef[]>(() => [
   { headerName: 'Категория', flex: 1, minWidth: 160, cellRenderer: buildCategoryRenderer, sortable: false },
   { headerName: 'Наименование', flex: 2, minWidth: 200, cellRenderer: buildNameRenderer, sortable: false },
 ])
-const gridOptions: GridOptions = { animateRows: true, suppressMovableColumns: true, suppressCellFocus: true, rowHeight: 48, headerHeight: 48, getRowId: (p) => String(p.data.id) }
+const gridOptions: GridOptions = { animateRows: true, suppressMovableColumns: true, suppressCellFocus: true, rowHeight: 48, headerHeight: 48, getRowId: (p) => String(p.data.id), onRowClicked: (e) => { if (e.data._hasChildren) toggleExpand(e.data.id) }, rowStyle: { cursor: "pointer" } }
 </script>
 
 <style scoped>
