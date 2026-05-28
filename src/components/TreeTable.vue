@@ -12,6 +12,54 @@ const emit = defineEmits<{
   (e: 'update:store', store: TreeStore): void
 }>()
 
+const classes = {
+  root: 'tree-table',
+  toolbar: 'tree-table__toolbar',
+  modeLabel: 'tree-table__mode-label',
+  modeName: {
+    base: 'tree-table__mode-name',
+    view: 'tree-table__mode-name--view',
+    edit: 'tree-table__mode-name--edit',
+  },
+  toolbarActions: 'tree-table__toolbar-actions',
+  modeToggle: 'tree-table__mode-toggle',
+  toggleBtn: {
+    base: 'tree-table__toggle-btn',
+    active: 'tree-table__toggle-btn--active',
+  },
+  btn: {
+    base: 'tree-table__btn',
+    primary: 'tree-table__btn--primary',
+    secondary: 'tree-table__btn--secondary',
+  },
+  grid: 'tree-table__grid ag-theme-alpine',
+  dialogOverlay: 'tree-table__dialog-overlay',
+  dialog: 'tree-table__dialog',
+  dialogParent: 'tree-table__dialog-parent',
+  dialogInput: 'tree-table__dialog-input',
+  dialogActions: 'tree-table__dialog-actions',
+  // cell renderer classes (used both in template and DOM API)
+  cell: {
+    category: 'tree-table__cell-category',
+    name: 'tree-table__cell-name',
+    num: 'tree-table__cell-num',
+    input: 'tree-table__cell-input',
+  },
+  chevron: {
+    base: 'tree-table__chevron',
+    open: 'tree-table__chevron--open',
+  },
+  typeLabel: {
+    base: 'tree-table__type-label',
+    group: 'tree-table__type-label--group',
+    item: 'tree-table__type-label--item',
+  },
+  actionBtn: {
+    base: 'tree-table__action-btn',
+    delete: 'tree-table__action-btn--delete',
+  },
+}
+
 const gridApi = shallowRef<GridApi | null>(null)
 const editMode = ref(false)
 const expandedIds = ref<Set<string | number>>(new Set([1]))
@@ -95,12 +143,14 @@ function buildCategoryRenderer(params: ICellRendererParams) {
   const isEdit = editMode.value
 
   const wrapper = document.createElement('div')
-  wrapper.className = 'tree-table__cell-category'
+  wrapper.className = classes.cell.category
   wrapper.style.paddingLeft = `${row._depth * 18}px`
 
   if (row._hasChildren) {
     const chevron = document.createElement('button')
-    chevron.className = 'tree-table__chevron' + (row._expanded ? ' tree-table__chevron--open' : '')
+    chevron.className = row._expanded
+      ? `${classes.chevron.base} ${classes.chevron.open}`
+      : classes.chevron.base
     chevron.innerHTML = `<svg width="12" height="12" viewBox="0 0 12 12" fill="none">
       <path d="M2 4L6 8L10 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
     </svg>`
@@ -114,14 +164,14 @@ function buildCategoryRenderer(params: ICellRendererParams) {
 
   const lbl = document.createElement('span')
   lbl.className = row._hasChildren
-    ? 'tree-table__type-label tree-table__type-label--group'
-    : 'tree-table__type-label tree-table__type-label--item'
+    ? `${classes.typeLabel.base} ${classes.typeLabel.group}`
+    : `${classes.typeLabel.base} ${classes.typeLabel.item}`
   lbl.textContent = row._hasChildren ? 'Группа' : 'Элемент'
   wrapper.appendChild(lbl)
 
   if (isEdit) {
     const addBtn = document.createElement('button')
-    addBtn.className = 'tree-table__action-btn'
+    addBtn.className = classes.actionBtn.base
     addBtn.title = 'Добавить дочерний'
     addBtn.innerHTML = `<svg width="12" height="12" viewBox="0 0 12 12" fill="none">
       <path d="M6 2V10M2 6H10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
@@ -136,11 +186,11 @@ function buildCategoryRenderer(params: ICellRendererParams) {
 function buildNameRenderer(params: ICellRendererParams) {
   const row = params.data
   const wrapper = document.createElement('div')
-  wrapper.className = 'tree-table__cell-name'
+  wrapper.className = classes.cell.name
 
   if (editMode.value) {
     const input = document.createElement('input')
-    input.className = 'tree-table__cell-input'
+    input.className = classes.cell.input
     input.value = row.label
     let saved = row.label
 
@@ -155,7 +205,7 @@ function buildNameRenderer(params: ICellRendererParams) {
     wrapper.appendChild(input)
 
     const del = document.createElement('button')
-    del.className = 'tree-table__action-btn tree-table__action-btn--delete'
+    del.className = `${classes.actionBtn.base} ${classes.actionBtn.delete}`
     del.title = 'Удалить'
     del.innerHTML = `<svg width="12" height="12" viewBox="0 0 12 12" fill="none">
       <path d="M2 2L10 10M10 2L2 10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
@@ -179,7 +229,7 @@ const columnDefs = computed<ColDef[]>(() => [
     headerName: '№ п/п',
     width: 80,
     valueGetter: (p) => (p.node?.rowIndex ?? 0) + 1,
-    cellClass: 'tree-table__cell-num',
+    cellClass: classes.cell.num,
     sortable: false,
     resizable: false,
   },
@@ -212,28 +262,28 @@ const gridOptions: GridOptions = {
 </script>
 
 <template>
-  <div class="tree-table">
-    <div class="tree-table__toolbar">
-      <span class="tree-table__mode-label">
+  <div :class="classes.root">
+    <div :class="classes.toolbar">
+      <span :class="classes.modeLabel">
         Режим:
-        <span class="tree-table__mode-name" :class="editMode ? 'tree-table__mode-name--edit' : 'tree-table__mode-name--view'">
+        <span :class="[classes.modeName.base, editMode ? classes.modeName.edit : classes.modeName.view]">
           {{ editMode ? 'редактирование' : 'просмотр' }}
         </span>
       </span>
 
-      <div class="tree-table__toolbar-actions">
-        <button v-if="editMode" class="tree-table__btn tree-table__btn--secondary" @click="expandAll">Развернуть все</button>
-        <button v-if="editMode" class="tree-table__btn tree-table__btn--secondary" @click="collapseAll">Свернуть все</button>
-        <button v-if="editMode" class="tree-table__btn tree-table__btn--primary" @click="addRootItem">+ Добавить элемент</button>
+      <div :class="classes.toolbarActions">
+        <button v-if="editMode" :class="[classes.btn.base, classes.btn.secondary]" @click="expandAll">Развернуть все</button>
+        <button v-if="editMode" :class="[classes.btn.base, classes.btn.secondary]" @click="collapseAll">Свернуть все</button>
+        <button v-if="editMode" :class="[classes.btn.base, classes.btn.primary]" @click="addRootItem">+ Добавить элемент</button>
       </div>
 
-      <div class="tree-table__mode-toggle">
-        <button class="tree-table__toggle-btn" :class="{ 'tree-table__toggle-btn--active': !editMode }" @click="setMode(false)">Просмотр</button>
-        <button class="tree-table__toggle-btn" :class="{ 'tree-table__toggle-btn--active': editMode }" @click="setMode(true)">Редактирование</button>
+      <div :class="classes.modeToggle">
+        <button :class="[classes.toggleBtn.base, { [classes.toggleBtn.active]: !editMode }]" @click="setMode(false)">Просмотр</button>
+        <button :class="[classes.toggleBtn.base, { [classes.toggleBtn.active]: editMode }]" @click="setMode(true)">Редактирование</button>
       </div>
     </div>
 
-    <div class="tree-table__grid ag-theme-alpine">
+    <div :class="classes.grid">
       <ag-grid-vue
         style="width: 100%; height: 100%"
         :columnDefs="columnDefs"
@@ -244,23 +294,23 @@ const gridOptions: GridOptions = {
     </div>
 
     <Transition name="tree-table__dialog-fade">
-      <div v-if="addingChildFor !== null" class="tree-table__dialog-overlay" @click.self="cancelAdd">
-        <div class="tree-table__dialog">
+      <div v-if="addingChildFor !== null" :class="classes.dialogOverlay" @click.self="cancelAdd">
+        <div :class="classes.dialog">
           <h3>Добавить дочерний элемент</h3>
-          <p class="tree-table__dialog-parent">
+          <p :class="classes.dialogParent">
             Родитель: <strong>{{ store.getItem(addingChildFor)?.label }}</strong>
           </p>
           <input
             ref="dialogInput"
             v-model="newItemLabel"
-            class="tree-table__dialog-input"
+            :class="classes.dialogInput"
             placeholder="Наименование..."
             @keyup.enter="confirmAdd"
             @keyup.escape="cancelAdd"
           />
-          <div class="tree-table__dialog-actions">
-            <button class="tree-table__btn tree-table__btn--secondary" @click="cancelAdd">Отмена</button>
-            <button class="tree-table__btn tree-table__btn--primary" @click="confirmAdd">Добавить</button>
+          <div :class="classes.dialogActions">
+            <button :class="[classes.btn.base, classes.btn.secondary]" @click="cancelAdd">Отмена</button>
+            <button :class="[classes.btn.base, classes.btn.primary]" @click="confirmAdd">Добавить</button>
           </div>
         </div>
       </div>
@@ -346,7 +396,6 @@ const gridOptions: GridOptions = {
   overflow: hidden;
 }
 
-/* Dialog */
 .tree-table__dialog-overlay {
   position: fixed;
   inset: 0;
@@ -408,7 +457,6 @@ const gridOptions: GridOptions = {
 </style>
 
 <style>
-/* AG Grid cell renderers — non-scoped, так как создаются через DOM API */
 .tree-table__cell-category { display: flex; align-items: center; gap: 6px; height: 100%; }
 .tree-table__cell-name { display: flex; align-items: center; gap: 8px; height: 100%; width: 100%; }
 .tree-table__cell-name span { font-size: 13px; color: #374151; }
